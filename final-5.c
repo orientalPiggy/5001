@@ -1,107 +1,112 @@
 /*
  * final-5.c
  *
- * Problem 5.
- * This problem tests your ability to take an algorithm
- * for a familiar operation and implement it by iteratively
- * computing successively closer approximations to the
- * actual value for a given input value.
+ * This assignment tests your understanding basic programming
+ * concepts, loops, arrays, and pointers.
  *
- * The problem is to implement the square root (root2)
- * function using a method described in an ancient Indian
- * mathematical manuscript.
+ * This problem is to write a function findInString() that
+ * returns a pointer to the first occurrence of a string in
+ * another string. See the function description for details.
  *
- * Let s be a double for which we want the square root.
- * Here is an iterative algorithm that computes the
- * next approximation x(n+1), given the previous one x(n).
+ * Here is an algorithm for this function:
  *
- * a = (s/x(n) - x(n))/2
- * x(n+1) = x(n) + a * (1 - a/(2*(x(n)+a))
+ * For each starting position in 'lookingIn', compare each
+ * character in lookingFor to the corresponding character in
+ * 'lookingIn'.
  *
- * Initialize x(0) = s as first approximation of its
- * square root
+ * If reached the end of 'lookingFor', then return the current
+ * starting position in 'lookingIn, else keep comparing the
+ * characters in the two arrays while they are equal.
  *
- * The method is quartically convergent, which means
- * the number of correct digits roughly quadruples with
- * each iteration.
+ * If not found at the current starting position in 'lookingIn',
+ * try again at the next position until reaching the end  of
+ * 'lookingIn' At that point, return NULL.
  *
- * The approximation stops when the next term is within
- * the precision of a double.
+ * Important: Do not use any functions from "string.h" to
+ * implement this function.
  */
-
 #include <stdio.h>
-#include <math.h>
-#include <float.h>
-
-// epsilon value for precision of a double
-static const double epsln = (sizeof(double) >= 8) ? 1e-15 : 1e-7;
-
-// format width for precision of a double
-static const unsigned fmtw = (sizeof(double) >= 8) ? 14 : 6;
+#include <stdlib.h>
+#include <string.h>
 
 /**
- * This function computes the square root of a double
- * using approximation that is quartically convergent.
+ * Returns pointer to first occurrence of lookingFor string in
+ * lookingIn string. If lookingFor string is empty, returns
+ * pointer to lookingIn string. If not found, returns NULL.
  *
- * Returns NAN if s < 0 or s is NAN, +INFINITY if s is
- * +INFINITY, or 0 if s < epsln. Otherwise, result is
- * returned to the precision of epsln for double format.
- *
- * @param s the number to take the square root.
- * @return the square root of the number.
+ * @param lookingIn the string to look in
+ * @param lookingFor the string to look for
+ * @return pointer to first occurrence of lookingFor in
+ *   lookingIn or NULL if not found
  */
-double root2(const double s) {
-	// your code here.
-	// note: see isnan(s), isinf(s), NAN, INFINITY in math.h
-
-	// set result to sentinel value
-	double result = -1;
-
-	// corner cases
-	if ( isnan(s) || s < 0) {
-		return NAN;
-	} else if (isinf(s)) {
-		return +INFINITY;
-	} else if (s < epsln) {
-		return 0;
-	} else {
-		// Initialize x(0) = s as first approximation
-		double previousEntry = s;
-		double a = ((s / previousEntry) - previousEntry) / 2;
-		double nextEntry = previousEntry
-				+ a * (1 - a / (2 * (previousEntry + a)));
-		// The loop continues when the difference between the
-		// nextEntry and previousEntry is greater than epsln
-		while (fabs(nextEntry - previousEntry) >= epsln) {
-
-			// Update two entries
-			previousEntry = nextEntry;
-			a = ((s / previousEntry) - previousEntry) / 2;
-			nextEntry = previousEntry + a * (1 - a / (2 * (previousEntry + a)));
-
-		}
-		result = nextEntry;
+const char *findInString(const char *lookingIn, const char *lookingFor) {
+	if (strlen(lookingFor) == 0) { // if lookingFor is empty, return lookingIn
+		return lookingIn;
 	}
 
-	return result;
+	const char *inp = lookingIn, *forp = lookingFor;
+	const char *lastp = lookingIn;
+
+	while (*inp != '\0') {
+		if (*inp == *forp) { // if first char of lookingFor matches a char in lookingIn
+			lastp = inp; // store the start position for this search
+			while (*inp != '\0' && *forp != '\0' && *inp == *forp) {
+				// check if rest of lookingIn matches lookingFor
+				inp++;
+				forp++;
+			}
+			if (*forp == '\0') { // lookingFor contains lookingIn
+				return lastp;
+			}
+			// lookingFor doesn't contain lookingIn,
+			inp = lastp++; // restore search start position to the next one of last search
+			forp = lookingFor;
+		}
+		inp++;
+	}
+
+	return NULL; // lookingFor doesn't contain lookingIn
 }
 
 /**
- * Main function tests root2 function.
+ * Main function tests strInStr function.
  */
 int main(void) {
+	const char *lookingIn[] = {
+		"",
+		"the",
+		"the rain in Spain",
+		NULL
+	};
 
-	printf("Start Problem 5\n\n");
+	const char *lookingFor[] = {
+		"",
+		"rain",
+		"the rain",
+		"rain in",
+		NULL
+	};
 
-	// test values
-	double squares[] = { 0.0, 1.0, 2.0, 144.0, 336009.0, 15241383936.0, DBL_MAX,
-			-1.0, NAN, INFINITY };
+	const char *expectedVals[] = {
+			"", NULL, NULL,
+			NULL, "the", NULL,
+			NULL, NULL, "the rain in Spain",
+			"rain in Spain", "the rain in Spain", "rain in Spain"
+	};
+	printf("Start Problem 5\n");
 
-	for (int i = 0; i < 10; i++) {
-		double root = root2(squares[i]);
-		printf("root2(%.*g): %.*g expected: %.*g\n", // format width of double
-				fmtw, squares[i], fmtw, root, fmtw, sqrt(squares[i]));
+	// try each lookingFor string against each lookingIn string
+	const char **expect = expectedVals;
+	for (int i = 0; lookingIn[i] != NULL; i++) {
+		for (int j = 0; lookingFor[j] != NULL; j++) {
+			const char *result = findInString(lookingIn[i], lookingFor[j]);
+			printf("for:    '%s'\n", lookingFor[j]);
+			printf("in:     '%s'\n", lookingIn[i]);
+			printf("found:  '%s'\n", result);
+			printf("expect: '%s'\n\n", *(expect++));
+		}
 	}
 
 	printf("\nEnd Problem 5\n");
+	return EXIT_SUCCESS;
 }

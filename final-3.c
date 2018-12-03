@@ -3,232 +3,186 @@
  *
  *  Problem 3.
  *
- *	This problem tests your understanding of structs and
- *	dynamic memory allocation.
+ *	This problem tests your understanding of using enums and
+ *	structs plus functions to create local and dynamic data types.
  *
- *	Below are the Point, Circle, and Rectangle structs from
- *	assignment 6. You will implement functions newPoint(),
- *	newRectangle(), and newCircle() that initialize and return
- *	a Point, Rectangle, or Circle, If the functions are passed
- *	a Point, Rectangle, or Circle, they initialize those and
- *	return a pointer to them. Otherwise, they allocate,
- *	initialize, and return a new Point, Rectangle, or Circle.
+ *	This problem defines a playing card Card with a Suit and
+ *	Value, and a deck of cards Deck as a counted collection of
+ *	cards.
  *
- *	You will also implement getBoundingBox() that takes a
- *	Rectangle and initializes it to the bounding box of a
- *	Circle. Otherwise, the function allocates, initializes
- *	and returns new bounding box Rectangle. Review your
- *	assignment-6 code for this function.
+ *	Use these enumerations, string arrays, and typedef structs
+ *	to implement the playing card functions below. Carefully
+ *	follow the instructions for each of the functions.
  */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+
+/** Enumeration of card suits */
+typedef enum {
+	Hearts, Diamonds, Clubs, Spades
+} Suit;
+
+/** Enumeration of card values */
+typedef enum {
+	Ace=1, Two, Three, Four, Five, Six, Seven, Eight,
+	Nine, Ten, Jack, Queen, King
+} Value;
+
+/** Suit names corresponding to Suit enum. */
+const char *suitName[] = { "Hearts", "Diamonds", "Clubs", "Spades" };
+
+/** Card value names corresponding to Value enum. ([0] unused) */
+const char *valueName[] = {
+	"*", "Ace", "2", "3", "4", "5", "6", "7", "8",
+	"9", "10", "Jack", "Queen", "King"
+};
+
+/** A playing card with suit and value */
+typedef struct {
+	/** the suit of the card */
+	Suit suit;
+	/** the value of the card */
+	Value value;
+} Card;
 
 /**
- * Stuct representing a point
+ * A deck of cards
  */
 typedef struct {
-	/** X value of point */
-	double x;
-	/** Y value of point */
-	double y;
-} Point;
+	/** array of up to 52 cards (4 suits, 13 values) */
+	Card cards[52];
+	/** the number of cards in the deck */
+	int ncards;
+} Deck;
 
 /**
- * Struct representing a circle
- */
-typedef struct {
-	/** Center of circle */
-	Point center;
-	/** Radius of circle */
-	double radius;
-} Circle;
-
-/**
- * Struct representing a rectangle
- */
-typedef struct {
-	/** top left point of rectangle */
-	Point topLeft;
-	/** width of rectangle */
-	double width;
-	/** height of rectangle */
-	double height;
-} Rectangle;
-
-/**
- * Initialize a new point with the specified coordinates.
- * If newPoint is NULL, allocates a new point to initialize.
- * Otherwise initializes newPoint that was passed in.
+ * Creates a card. If card is NULL, allocates storage, otherwise
+ * uses the storage passed in.
  *
- * @param x the x coordinate
- * @param y the y coordinate * @param height the height of the rectangle
- * @param newPoint a new Point to initialize or NULL to allocate new one
- * @return a pointer to newPoint or to a dynamically allocated
- *   point if newPoint is NULL
+ * @param value the card Value
+ * @param suit the card Suit
+ * @param card pointer to a card or NULL if this function
+ *   should allocate the card
+ * @return initialized card
  */
-Point *newPoint(double x, double y, Point *newPoint) {
-	// your code here
-	// If the newPoint passed in is NULL, allocate storage from heap
-	if (newPoint == NULL) {
-		newPoint = malloc(sizeof(Point));
+Card *createCard(Value value, Suit suit, Card *card) {
+	if (card == NULL) {
+		card = malloc(sizeof(Card));
 	}
-	newPoint->x = x;
-	newPoint->y = y;
-	return newPoint;
+	card->value = value;
+	card->suit = suit;
+
+	return card;
 }
 
 /**
- * Initialize a new rectangle with the specified point, width, and height.
- * If newRect is NULL, allocates a new rectangle to initialize. Otherwise
- * initializes newRect that was passed in.
+ * Creates a full deck of cards. If deck is NULL, allocates
+ * storage, otherwise uses the storage passed in.
  *
- * @param topLeft the top left point
- * @param width the width of the rectangle
- * @param height the height of the rectangle
- * @param newRect a new Rectangle to initialize or NULL to allocate new one
- * @return a pointer to newRect or to a dynamically allocated
- *   rectangle if newRect is NULL
+ * Use Suit and Value types and enumeration values rather than
+ * integers for loop indexes, and use createCard() to initialize
+ * each card in the cards array. The the deck ncards field is set
+ * to the number of cards in the deck.
+ *
+ * @param deck the deck to initialize or NULL if this function
+ * 	should allocate the deck
+ * @return an initialize deck of cards
  */
-Rectangle *newRectangle(const Point *topLeft, double width, double height,
-		Rectangle *newRect) {
-	// your code here
-	// If newRect passed in is NULL, allocate storage from heap
-//	if (topLeft == NULL){
-//		return NULL;
-//	}
-	if (newRect == NULL) {
-		newRect = malloc(sizeof(Rectangle));
+Deck *createDeck(Deck *deck) {
+	if (deck == NULL) {
+		deck = malloc(sizeof(Deck));
 	}
-	newRect->height = height;
-	newRect->width = width;
-	// Point struct is passed by value
-	newRect->topLeft = *topLeft;
-	return newRect;
-}
-
-/**
- * Initialize a new circle with the specified point, width, and height.
- * If newCircle is NULL, allocates a new circle to initialize. Otherwise
- * initializes newCircle that was passed in.
- *
- * @param center the center point
- * @param radius the radius of the circle
- * @return a pointer to newCircle or to a dynamically allocated
- *   circle if newCircle is NULL
- */
-Circle *newCircle(const Point *center, double radius, Circle *newCircle) {
-	// your code here
-	// if the circle is not on the stack, allocate space for it from heap
-	if (newCircle == NULL) {
-		newCircle = malloc(sizeof(Circle));
+	for (Suit s = Hearts; s <= Spades; s++) {
+		for (Value v = Ace; v <= King; v++) {
+			// create card
+			Card *card = createCard(v, s, NULL);
+			// add card to Card array & increment card number
+			deck->cards[deck->ncards++] = *card;
+		}
 	}
-	newCircle->radius = radius;
-	newCircle->center = *center;
-	return newCircle;
+
+	return deck;
 }
 
 /**
- * Returns the bounding box of the specified circle. If bounding box
- * is NULL, creates a new bounding box to initialize. Otherwise
- * initializes boundingBox that was passed in.
+ * Returns string representation of a Card. For example,
+ * the card  Jack of Diamonds returns "Jack of Diamonds".
  *
- * @param circle the circle
- * @param boundingBox the bounding box of the circle or to a
- *   dynamically allocated rectangle if boundingBox is NULL
+ * @param card pointer to a card
+ * @param str pointer to result string
+ * @param result string for card;
+ * @return pointer to the string
  */
-Rectangle *getBoundingBox(const Circle *circle, Rectangle *boundingBox) {
-	// your code here
-	// NOTE: implement using newPoint() and newRectangle();
-	// do not malloc storage in this function.
-//  no need to check whether it's NULL or not
-//	if(boundingBox == NULL){
-//		Point heapUpperLeft;
-//		double x = circle->center.x - circle->radius;
-//		double y = circle->center.y + circle->radius;
-//		heapUpperLeft = *(newPoint(x, y, &heapUpperLeft));
-//		double heapRectWidth = 2 * circle->radius;
-//		double heapRectHeight = 2 * circle ->radius;
-//		return newRectangle(&heapUpperLeft,heapRectWidth, heapRectHeight, boundingBox);
-//	}
-	Point topLeft;
-	double x = circle->center.x - circle->radius;
-	double y = circle->center.y + circle->radius;
-	// Copy the point struct by value
-	topLeft = *(newPoint(x, y, &topLeft));
-	double width = 2 * circle->radius;
-	double height = 2 * circle->radius;
-	return newRectangle(&topLeft, width, height, boundingBox);
+char *cardToString(Card *card, char *str) {
+	const char *val = *(card->value + valueName);
+	const char *suit = *(card->suit + suitName);
+	sprintf(str, "%s %s %s", val, "of", suit);
+	return str;
 }
 
 /**
- * Tests the deck functions
+ * Prints the deck of cards to standard output, one card per
+ * line. Use cardToString() to produce string representations
+ * of the cards.
+ *
+ * @param deck pointer to the deck to print
+ */
+void printDeck(Deck *deck) {
+	char cardStr[128];
+	for (int card = 0; card < deck->ncards; card++) {
+		char *str = cardToString(&deck->cards[card], cardStr);
+		printf("%s\n", str);
+	}
+}
+
+/**
+ * Tests the card and deck functions
  */
 int main(void) {
 	printf("Start Problem 3\n");
 
-	// test local point
-	Point point1;
-	Point *point1p = newPoint(10.0, 20.0, &point1);
-	printf("local Point: x=%f, y=%f ", point1p->x, point1p->y);
-	printf("expected: x=%f, y=%f\n", 10.0, 20.0);
+	// create local card
+	Card c;
+	char cardstr[128];
+	Card *localCard = createCard(Jack, Diamonds, &c);
+	printf("\nLocal card: %s  expected: %s\n",
+		   cardToString(localCard, cardstr), "Jack of Diamonds");
 
-	// test heap point
-	Point *point2p = newPoint(30.0, 40.0, NULL);  // not freed
-	printf("heap  Point: x=%f, y=%f ", point2p->x, point2p->y);
-	printf("expected: x=%f, y=%f\n", 30.0, 40.0);
-	// free(point2p);
+	// create allocated card
+	Card *allocatedCard = createCard(Three, Clubs, NULL);
+	if (allocatedCard == NULL) {
+		printf("\nAllocated card is NULL\n");
+	} else {
+		printf("\nAllocated card: %s  expected: %s\n",
+				cardToString(allocatedCard, cardstr), "3 of Clubs");
+		// free allocated card
+		free(allocatedCard);
+	}
 
-	// test local rectangle
-	Rectangle rect1;
-	Rectangle *rect1p = newRectangle(point1p, 15.0, 30.0, &rect1);
-	printf("local Rectangle: x=%f, y=%f width=%f height=%f ", rect1p->topLeft.x,
-			rect1p->topLeft.y, rect1p->width, rect1p->height);
-	printf("expected: x=%f, y=%f width=%f height=%f\n", point1p->x, point1p->y,
-			15.0, 30.0);
+	// create local deck
+	Deck d;
+	Deck *localDeck = createDeck(&d);
 
-	// test heap rectangle
-	Rectangle *rect2p = newRectangle(point2p, 15.0, 30.0, NULL); // not freed
-	printf("heap  Rectangle: x=%f, y=%f width=%f height=%f ", rect2p->topLeft.x,
-			rect2p->topLeft.y, rect2p->width, rect2p->height);
-	printf("expected: x=%f, y=%f width=%f height=%f\n", point2p->x, point2p->y,
-			15.0, 30.0);
-	// free(rect2p);
+	// print local deck
+	printf("\nLocal deck:\n");
+	printDeck(localDeck);
 
-	// test local circle
-	Circle circle1;
-	Circle *circle1p = newCircle(point1p, 15.0, &circle1);
-	printf("local Circle: x=%f, y=%f radius=%f ", circle1p->center.x,
-			circle1p->center.y, circle1p->radius);
-	printf("expected: x=%f, y=%f radius=%f\n", point1p->x, point1p->y, 15.0);
+	// create allocated deck
+	Deck *allocatedDeck = createDeck(NULL);
+	if (allocatedDeck == NULL) {
+		printf("Allocated deck is NULL\n");
+	} else {
+		// print allocated deck
+		printf("\nAllocated deck:\n");
+		printDeck(allocatedDeck);
 
-	// test heap circle
-	Circle *circle2p = newCircle(point2p, 10.0, NULL);  // not freed
-	printf("local Circle: x=%f, y=%f radius=%f ", circle2p->center.x,
-			circle2p->center.y, circle2p->radius);
-	printf("expected: x=%f, y=%f radius=%f\n", point2p->x, point2p->y, 10.0);
-	// free(circle2p);
-
-	// test local bounding box
-	Rectangle bbox1;
-	Rectangle *bbox1p = getBoundingBox(circle1p, &bbox1);
-	printf("local Bounding Box: x=%f, y=%f width=%f height=%f ",
-			bbox1p->topLeft.x, bbox1p->topLeft.y, bbox1p->width,
-			bbox1p->height);
-	printf("expected: x=%f, y=%f width=%f height=%f\n", -5.0, 35.0,
-			circle1p->radius * 2.0, circle1p->radius * 2.0);
-
-	// test heap bounding box
-	Rectangle *bbox2p = getBoundingBox(circle2p, NULL);  // not freed
-	printf("heap  Bounding Box: x=%f, y=%f width=%f height=%f ",
-			bbox2p->topLeft.x, bbox2p->topLeft.y, bbox2p->width,
-			bbox2p->height);
-	printf("expected: x=%f, y=%f width=%f height=%f\n", 20.0, 50.0,
-			circle2p->radius * 2.0, circle2p->radius * 2.0);
-	// free( &(bbox2p->topLeft));
-	// free(bbox2p);
+		// free allocated deck
+		free(allocatedDeck);
+	}
 
 	printf("\nEnd Problem 3\n");
-
+	return EXIT_SUCCESS;
 }

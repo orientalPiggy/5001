@@ -13,6 +13,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /** Enumeration values representing the calculator operations */
@@ -36,7 +37,7 @@ typedef enum { NONE, ADD, SUB, MULT, DIV} Op;
  * Process each input string, If the string represents an arithmetic
  * operation, save it as the pending operation. If the string is "C",
  * immediately reset the result to 0 and the pending operation to NONE.
- * If the string is a number, then perform the pending operation on
+ * if the string is a number, then perform the pending operation on
  * the result and the number.
  *
  *  - NONE sets the result to the number.
@@ -55,65 +56,54 @@ typedef enum { NONE, ADD, SUB, MULT, DIV} Op;
  * @param input null-terminated array of input strings
  * @return the result of the calculation
  */
-double calc(const char *input[]) {
-
-	double result = 0.0;
-	double digit;
-	// No operation before the 1st digit
+double calc(const char* input[]) {
 	Op pendingOp = NONE;
+	double result = 0;
+	double pendingNum = 0;
+	int index = 0;
 
-	// NULL terminates the input array of String
-	while (*input != NULL) {
-
-		// If the string represents a digit, then perform the pending operation
-		// on the result and this digit
-		if (sscanf(*input, "%lf", &digit) == 1) {
+	while (input[index] != NULL) {
+		const char *str = input[index]; // get the current string
+		int flag = sscanf(str, "%lf", &pendingNum); // copy current string to pendingNum
+		if (!flag) { // the string is an operator
+			if (strcmp(str, "NONE") == 0) {
+				result = pendingNum;
+			} else if (strcmp(str, "+") == 0) {
+				pendingOp = ADD;
+			} else if (strcmp(str, "-") == 0) {
+				pendingOp = SUB;
+			} else if (strcmp(str, "*") == 0) {
+				pendingOp = MULT;
+			} else if (strcmp(str, "/") == 0) {
+				pendingOp = DIV;
+			} else if (strcmp(str, "C") == 0) {
+				pendingOp = NONE;
+				pendingNum = 0;
+				result = 0;
+			}
+		} else { // the string is a number
 			switch (pendingOp) {
+			case NONE:
+				result = pendingNum;
+				break;
 			case ADD:
-				result += digit;
+				result += pendingNum;
 				break;
 			case SUB:
-				result -= digit;
+				result -= pendingNum;
 				break;
 			case MULT:
-				result *= digit;
+				result *= pendingNum;
 				break;
 			case DIV:
-				result /= digit;
+				result /= pendingNum;
 				break;
-			case NONE:
-				result = digit;
+			default:
 				break;
 			}
-			// Reset the pending operation to NONE after performing
-			// the operation with this digit.
-			pendingOp = NONE;
-
-			// All cases when scanned input is not a digit
-		} else if (strcmp(*input, "+") == 0) {
-			// If the string represents an arithmetic "+"
-			// operation, save it as the pending operation.
-			pendingOp = ADD;
-		} else if (strcmp(*input, "-") == 0) {
-			// If the string represents an arithmetic "-"
-			// operation, save it as the pending operation.
-			pendingOp = SUB;
-		} else if (strcmp(*input, "*") == 0) {
-			// If the string represents an arithmetic "*"
-			// operation, save it as the pending operation.
-			pendingOp = MULT;
-		} else if (strcmp(*input, "/") == 0) {
-			// If the string represents an arithmetic "/"
-			// operation, save it as the pending operation.
-			pendingOp = DIV;
-		} else if (strcmp(*input, "C") == 0) {
-			// If the string is "C" (Clear),
-			// Reset the result to 0 and the pending operation to NONE.
-			result = 0;
-			pendingOp = NONE;
 		}
-		// Traverse all elements in the array of String
-		input++;
+
+		index++; //increment index for next operation
 	}
 
 	return result;
@@ -127,19 +117,18 @@ int main(void) {
 	printf("Start Problem 4\n\n");
 
 	// input values
-	const char **cmds[] = {
-		(const char *[]){ NULL },
-		(const char *[]){ "4", NULL },
-		(const char *[]){ "4", "+", "5", NULL },
-		(const char *[]){ "4", "+", "5", "/", "2", NULL },
-		(const char *[]){ "4", "+", "5", "/", "2", "C", "5", NULL },
-		(const char *[]){ "3", "+", "C", "4", "+", "7", "/", "2", NULL },
-		(const char *[]){ "C", "3", "+", "C", "+", "1","+", "1", "/", "2", NULL },
+	char **cmds[] = {
+		(char *[]){ NULL },
+		(char *[]){ "4", NULL },
+		(char *[]){ "4", "+", "5", NULL },
+		(char *[]){ "4", "+", "5", "/", "2", NULL },
+		(char *[]){ "4", "+", "5", "/", "2", "C", "5", NULL },
+		(char *[]){ "3", "+", "C", "4", "+", "7", "/", "2", NULL },
 		NULL
 	};
 
 	// expected results
-	double expected[] = {0, 4, 9, 4.5, 5, 5.5, 1.0};
+	double expected[] = {0, 4, 9, 4.5, 5, 5.5 };
 
 	// report actual and expected results
 	for (int i = 0; cmds[i] != NULL; i++) {
@@ -147,4 +136,5 @@ int main(void) {
 	}
 
 	printf("\nEnd Problem 4\n");
+	return EXIT_SUCCESS;
 }

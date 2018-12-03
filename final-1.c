@@ -10,7 +10,7 @@
  * that copies characters of the 'fromText' input string to the
  * 'toText' output string, If a character in the input string
  * matches a character in a separate 'fromChars' array, copy the
- * corresponding character in a toChars' array instead. You may
+ * corresponding character in a toCHars' array instead. You may
  * use standard string library functions for this problem.
  *
  * For example:
@@ -32,6 +32,7 @@
  *
  */
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -51,14 +52,21 @@
  */
 void translit (char *toText, const char *toChars,
 			   const char *fromText, const char *fromChars) {
-	// your code here (you may use strchr() if you wish)
-	int i;
-	for (i = 0; fromText[i] != '\0'; i++) {
-		char *p = strchr(fromChars, fromText[i]);
-		// The address difference for two pointers indicates nth element
-		toText[i] = (p == NULL) ? fromText[i] : toChars[p-fromChars];
+	char *toTextp = toText;
+	const char *fromTextp = fromText;
+
+	while (*fromTextp != '\0') {
+		// get the position where current char appears in fromChars array
+		char *posInFromChars = strchr(fromChars, *fromTextp);
+		// if fromChars array contains current char, copy corresponding char from toChars
+		if (posInFromChars != NULL) {
+			*toTextp++ = *(posInFromChars - fromChars + toChars);
+			fromTextp++;
+			continue;
+		}
+		// if doesn't contain, copy from fromText
+		*toTextp++ = *fromTextp++;
 	}
-	toText[i] = '\0';
 }
 
 /**
@@ -130,4 +138,5 @@ int main(void) {
 	printf("plain: %s\n", plainText);
 
 	printf("\nEnd Problem 1\n");
+	return EXIT_SUCCESS;
 }
